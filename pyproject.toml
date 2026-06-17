@@ -1,0 +1,53 @@
+[project]
+name = "wild-vision"
+version = "0.1.0"
+description = "PyTorch Lightning project template for wild/nature image recognition"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    # For Win install the CUDA package
+    "torch>=2.12.0; sys_platform == 'win32'",
+    "torchvision>=0.27.0; sys_platform == 'win32'",
+
+    # For MacOS & Linux/WSL install standard torch package
+    "torch>=2.12.0; sys_platform != 'win32'",
+    "torchvision>=0.27.0; sys_platform != 'win32'",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cuda", marker = "sys_platform == 'win32'" },
+]
+torchvision = [
+    { index = "pytorch-cuda", marker = "sys_platform == 'win32'" },
+]
+
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.17",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__ files
