@@ -1,4 +1,5 @@
-import torch 
+import torch
+
 
 def main():
     print("Hello from wild-vision!\n")
@@ -11,6 +12,6 @@ def main():
 
     print("")
 
-    
+
 if __name__ == "__main__":
     main()

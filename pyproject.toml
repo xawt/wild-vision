@@ -26,3 +26,28 @@ torch = [
 torchvision = [
     { index = "pytorch-cuda", marker = "sys_platform == 'win32'" },
 ]
+
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.17",
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__ files
