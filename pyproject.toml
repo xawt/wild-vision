@@ -1,7 +1,7 @@
 [project]
 name = "wild-vision"
 version = "0.1.0"
-description = "Add your description here"
+description = "PyTorch Lightning project template for wild/nature image recognition"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
