@@ -7,6 +7,10 @@ The split and the train dataloader are seeded for reproducibility by using a gen
 a fixed seed.
 
 Uses a mirror URL to download the dataset to avoid issues with the original source.
+
+TODO:
+- Add support for augmentations. Pass the configuration or the transforms. To be implemented
+when the augmentations are defined in the config.
 """
 
 import hashlib
