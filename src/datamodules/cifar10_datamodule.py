@@ -28,6 +28,14 @@ from torchvision.datasets import CIFAR10
 class CIFAR10DataModule(L.LightningDataModule):
     download_url = "https://data.brainchip.com/dataset-mirror/cifar10/cifar-10-python.tar.gz"
     checksum = "6d958be074577803d12ecdefd02955f39262c83c16fe9348329d7fe0b5c001ce"
+    expected_batch_md5 = {
+        "data_batch_1": "c99cafc152244af753f735de768cd75f",
+        "data_batch_2": "d4bba439e000b95fd0a9bffe97cbabec",
+        "data_batch_3": "54ebc095f3ab1f0389bbae665268c751",
+        "data_batch_4": "634d18415352ddfa80567beed471001a",
+        "data_batch_5": "482c414d41f54cd18b22e5b47cb7c3cb",
+        "test_batch": "40351d587109b95175f43aff81a1287e",
+    }
 
     def __init__(self, data_dir: str = "./data", batch_size: int = 32, num_workers: int = 4, seed: int = 42):
         super().__init__()
@@ -50,6 +58,7 @@ class CIFAR10DataModule(L.LightningDataModule):
 
         extracted_dir = os.path.join(self.data_dir, "cifar-10-batches-py")
         if os.path.isdir(extracted_dir):
+            self._verify_extracted_files(extracted_dir)
             return
 
         tar_path = os.path.join(self.data_dir, "cifar-10-python.tar.gz")
@@ -75,7 +84,28 @@ class CIFAR10DataModule(L.LightningDataModule):
             tar.extractall(path=self.data_dir)
 
         os.remove(tar_path)
+        self._verify_extracted_files(extracted_dir)
         print("CIFAR-10 dataset ready")
+
+    @staticmethod
+    def _md5sum(file_path: str) -> str:
+        file_hash = hashlib.md5()
+        with open(file_path, "rb") as file:
+            for chunk in iter(lambda: file.read(1024 * 1024), b""):
+                file_hash.update(chunk)
+        return file_hash.hexdigest()
+
+    def _verify_extracted_files(self, extracted_dir: str) -> None:
+        for filename, expected_md5 in self.expected_batch_md5.items():
+            file_path = os.path.join(extracted_dir, filename)
+            if not os.path.isfile(file_path):
+                raise FileNotFoundError(f"Missing CIFAR-10 file: {file_path}")
+
+            actual_md5 = self._md5sum(file_path)
+            if actual_md5 != expected_md5:
+                raise ValueError(
+                    f"MD5 mismatch for {filename}: expected {expected_md5}, got {actual_md5}"
+                )
 
     def setup(self, stage=None):
         transform = transforms.Compose([
