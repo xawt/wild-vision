@@ -46,25 +46,32 @@ class CIFAR10DataModule(L.LightningDataModule):
 
     def prepare_data(self):
         """
-        Download and prepare the CIFAR-10 dataset. Uses a mirror URL
-        to avoid issues with the original source.
+        Download and verify the CIFAR-10 dataset using a mirror URL.
 
-        1. Check if the dataset is already downloaded and extracted.
-        2. If not, download the tar.gz file from the mirror.
-        3. Extract the contents to the specified data directory.
-        4. Clean up the tar.gz file after extraction.
+        1. If extracted files already exist, verify expected batch-file MD5 hashes.
+        2. Otherwise download the archive from the mirror.
+        3. Remove partial archive file if download fails.
+        4. Verify downloaded archive SHA-256 before extraction.
+        5. Extract the archive, remove it, then verify extracted batch-file MD5 hashes.
         """
         os.makedirs(self.data_dir, exist_ok=True)
 
+        # Check if existing files match the expected MD5 hashes
         extracted_dir = os.path.join(self.data_dir, "cifar-10-batches-py")
         if os.path.isdir(extracted_dir):
             self._verify_extracted_files(extracted_dir)
             return
 
+        # Download the archive from the mirror URL
         tar_path = os.path.join(self.data_dir, "cifar-10-python.tar.gz")
 
         print("Downloading CIFAR-10 from mirror...")
-        urllib.request.urlretrieve(self.download_url, tar_path)
+        try:
+            urllib.request.urlretrieve(self.download_url, tar_path)
+        except Exception:
+            if os.path.exists(tar_path):
+                os.remove(tar_path)
+            raise
 
         # Verify archive integrity before extracting it.
         file_hash = hashlib.sha256()
@@ -79,6 +86,7 @@ class CIFAR10DataModule(L.LightningDataModule):
                 f"Checksum mismatch for CIFAR-10 archive: expected {self.checksum}, got {downloaded_checksum}"
             )
 
+        # Extract the archive and verify the extracted files
         print("Extracting files...")
         with tarfile.open(tar_path, "r:gz") as tar:
             tar.extractall(path=self.data_dir)
