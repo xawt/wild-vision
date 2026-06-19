@@ -83,7 +83,7 @@ class CIFAR10DataModule(L.LightningDataModule):
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
         ])
 
-        if stage == 'fit' or stage is None:
+        if stage == 'fit' or stage == 'validate' or stage is None:
             generator = torch.Generator().manual_seed(self.seed)
             self.train_dataset, self.val_dataset = random_split(
                 CIFAR10(root=self.data_dir, train=True, transform=transform),
