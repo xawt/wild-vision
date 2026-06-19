@@ -3,18 +3,27 @@ CIFAR-10 DataModule for PyTorch Lightning
 
 This module handles the CIFAR-10 dataset. Provides a 50,000/5,000 train/validation split
  and a test set of 10,000 images. It also includes data augmentation and normalization.
-The split and the train dataloader are seeded for reproducibility by using a generator with 
+The split and the train dataloader are seeded for reproducibility by using a generator with
 a fixed seed.
+
+Uses a mirror URL to download the dataset to avoid issues with the original source.
 """
+
+import os
+import tarfile
+import urllib.request
 
 import lightning as L
 import torch
+from torch.utils import data
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
 
 
 class CIFAR10DataModule(L.LightningDataModule):
+    download_url = "https://data.brainchip.com/dataset-mirror/cifar10/cifar-10-python.tar.gz"
+
     def __init__(self, data_dir: str = "./data", batch_size: int = 32, num_workers: int = 4, seed: int = 42):
         super().__init__()
         self.data_dir = data_dir
@@ -23,9 +32,32 @@ class CIFAR10DataModule(L.LightningDataModule):
         self.seed = seed
 
     def prepare_data(self):
-        # Download CIFAR-10 dataset if not already downloaded
-        CIFAR10(root=self.data_dir, train=True, download=True)
-        CIFAR10(root=self.data_dir, train=False, download=True)
+        """
+        Download and prepare the CIFAR-10 dataset. Uses a mirror URL
+        to avoid issues with the original source.
+
+        1. Check if the dataset is already downloaded and extracted.
+        2. If not, download the tar.gz file from the mirror.
+        3. Extract the contents to the specified data directory.
+        4. Clean up the tar.gz file after extraction.
+        """
+        os.makedirs(self.data_dir, exist_ok=True)
+
+        extracted_dir = os.path.join(self.data_dir, "cifar-10-batches-py")
+        if os.path.isdir(extracted_dir):
+            return
+
+        tar_path = os.path.join(self.data_dir, "cifar-10-python.tar.gz")
+
+        print("Downloading CIFAR-10 from mirror...")
+        urllib.request.urlretrieve(self.download_url, tar_path)
+
+        print("Extracting files...")
+        with tarfile.open(tar_path, "r:gz") as tar:
+            tar.extractall(path=self.data_dir)
+
+        os.remove(tar_path)
+        print("CIFAR-10 dataset ready")
 
     def setup(self, stage=None):
         transform = transforms.Compose([
