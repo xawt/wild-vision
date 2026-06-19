@@ -9,13 +9,13 @@ a fixed seed.
 Uses a mirror URL to download the dataset to avoid issues with the original source.
 """
 
+import hashlib
 import os
 import tarfile
 import urllib.request
 
 import lightning as L
 import torch
-from torch.utils import data
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
@@ -23,6 +23,7 @@ from torchvision.datasets import CIFAR10
 
 class CIFAR10DataModule(L.LightningDataModule):
     download_url = "https://data.brainchip.com/dataset-mirror/cifar10/cifar-10-python.tar.gz"
+    checksum = "6d958be074577803d12ecdefd02955f39262c83c16fe9348329d7fe0b5c001ce"
 
     def __init__(self, data_dir: str = "./data", batch_size: int = 32, num_workers: int = 4, seed: int = 42):
         super().__init__()
@@ -51,6 +52,19 @@ class CIFAR10DataModule(L.LightningDataModule):
 
         print("Downloading CIFAR-10 from mirror...")
         urllib.request.urlretrieve(self.download_url, tar_path)
+
+        # Verify archive integrity before extracting it.
+        file_hash = hashlib.sha256()
+        with open(tar_path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                file_hash.update(chunk)
+
+        downloaded_checksum = file_hash.hexdigest()
+        if downloaded_checksum != self.checksum:
+            os.remove(tar_path)
+            raise ValueError(
+                f"Checksum mismatch for CIFAR-10 archive: expected {self.checksum}, got {downloaded_checksum}"
+            )
 
         print("Extracting files...")
         with tarfile.open(tar_path, "r:gz") as tar:
