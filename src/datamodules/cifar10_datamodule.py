@@ -2,7 +2,7 @@
 CIFAR-10 DataModule for PyTorch Lightning
 
 This module handles the CIFAR-10 dataset. Provides a 50,000/5,000 train/validation split
- and a test set of 10,000 images. It also includes data augmentation and normalization.
+ and a test set of 10,000 images. It also includes normalization transforms for the dataset.
 The split and the train dataloader are seeded for reproducibility by using a generator with
 a fixed seed.
 
@@ -80,7 +80,7 @@ class CIFAR10DataModule(L.LightningDataModule):
     def setup(self, stage=None):
         transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
         ])
 
         if stage == 'fit' or stage is None:
