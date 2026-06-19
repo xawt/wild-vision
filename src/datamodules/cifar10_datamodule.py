@@ -97,7 +97,7 @@ class CIFAR10DataModule(L.LightningDataModule):
 
     @staticmethod
     def _md5sum(file_path: str) -> str:
-        file_hash = hashlib.md5()
+        file_hash = hashlib.md5(usedforsecurity=False)
         with open(file_path, "rb") as file:
             for chunk in iter(lambda: file.read(1024 * 1024), b""):
                 file_hash.update(chunk)
